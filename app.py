@@ -1,5 +1,4 @@
 from fastapi import FastAPI
-from langchain_ollama import ChatOllama
 from fastapi.responses import JSONResponse
 from model.intro_model import intro_workflow,llm
 
