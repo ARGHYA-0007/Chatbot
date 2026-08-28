@@ -2,7 +2,6 @@ from fastapi import FastAPI
 from langchain_ollama import ChatOllama
 from fastapi.responses import JSONResponse
 from model.intro_model import intro_workflow,llm
-from model.email_model import email_workflow,llm7b
 
 app = FastAPI()
 MODEL_VERSION = '1.0.0'
