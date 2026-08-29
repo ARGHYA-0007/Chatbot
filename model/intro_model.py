@@ -10,19 +10,10 @@ from typing import Optional
 from langchain_ollama import ChatOllama
 from langchain_groq import ChatGroq
 from dotenv import load_dotenv
-OLLAMA_HOST = os.getenv("OLLAMA_HOST")
-OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "qwen2.5:7b")
-
-
-if not OLLAMA_HOST:
-    raise RuntimeError(
-        "OLLAMA_HOST environment variable is not configured"
-    )
 
 
 llm = ChatOllama(
-    model=OLLAMA_MODEL,
-    base_url=OLLAMA_HOST,
+    model="qwen2.5:7b"
 )
 class is_intro(BaseModel):
     message_type:Literal['intro','simple']=Field(description="Return 'intro' if the message is a self-introduction "
