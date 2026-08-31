@@ -23,8 +23,6 @@ def chat(state:ChatState):
     return {'answer':result}
 graph = StateGraph(ChatState)
 graph.add_node('chat',chat)
-# graph.add_node('query',ask_query)
-# graph.add_edge(START,'query')
 graph.add_edge(START,'chat')
 graph.add_edge('chat',END)
 workflow = graph.compile()
