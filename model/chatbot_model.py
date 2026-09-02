@@ -26,7 +26,7 @@ graph.add_node('chat',chat)
 graph.add_edge(START,'chat')
 graph.add_edge('chat',END)
 workflow = graph.compile()
-while True:
-    query = input('USER:')
-    result = workflow.invoke({'query':query})
-    print('AI:',result['answer'])
+# while True:
+#     query = input('USER:')
+#     result = workflow.invoke({'query':query})
+#     print('AI:',result['answer'])
