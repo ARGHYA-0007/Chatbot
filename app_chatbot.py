@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
-from chatbot_model import workflow
+from chatbot_model import workflow,config
 from langchain_core.messages import SystemMessage,HumanMessage
 
 
@@ -16,5 +16,5 @@ def chatbot(query:str):
     "messages": [
         HumanMessage(content=query)
     ]
-})
+},config=config)
     return {'AI':result['messages'][-1].content}
