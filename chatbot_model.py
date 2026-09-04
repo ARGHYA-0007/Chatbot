@@ -29,8 +29,8 @@ graph.add_node('chat',chat)
 graph.add_edge(START,'chat')
 graph.add_edge('chat',END)
 workflow = graph.compile(checkpointer=memory)
-while True:
-    query = input('USER:')
-    result = workflow.invoke({
-    "messages": [HumanMessage(content=query)]},config=config)
-    print('AI',result['messages'][-1].content)
+# while True:
+#     query = input('USER:')
+#     result = workflow.invoke({
+#     "messages": [HumanMessage(content=query)]},config=config)
+#     print('AI',result['messages'][-1].content)
