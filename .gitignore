@@ -1,0 +1,7 @@
+*
+!.gitignore
+!app_chatbot.py
+!frontend_chatbot.py
+!requirements.txt
+!model/
+!model/chatbot_model.py
