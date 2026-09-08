@@ -1,4 +1,3 @@
-````html
 <!DOCTYPE html>
 <html lang="en">
 
@@ -1056,6 +1055,15 @@ body{
 }
 
 
+.message.user{
+
+    flex-direction:row-reverse;
+
+    justify-content:flex-end;
+
+}
+
+
 @keyframes messageIn{
 
     from{
@@ -1141,6 +1149,25 @@ body{
 }
 
 
+.message.user .message-content{
+
+    flex:0 1 auto;
+
+    max-width:72%;
+
+    width:fit-content;
+
+    margin-left:auto;
+
+    display:flex;
+
+    flex-direction:column;
+
+    align-items:flex-end;
+
+}
+
+
 .message-header{
 
     display:flex;
@@ -1150,6 +1177,13 @@ body{
     gap:8px;
 
     margin-bottom:7px;
+
+}
+
+
+.message.user .message-header{
+
+    flex-direction:row-reverse;
 
 }
 
@@ -1191,7 +1225,25 @@ body{
 
 .message.user .message-text{
 
-    color:#bdc5d3;
+    color:#e4d9ff;
+
+    background:rgba(169,112,255,.09);
+
+    border:1px solid rgba(169,112,255,.18);
+
+    padding:10px 14px;
+
+    border-radius:12px;
+
+    border-top-right-radius:4px;
+
+    text-align:left;
+
+    display:inline-block;
+
+    width:fit-content;
+
+    max-width:100%;
 
 }
 
@@ -1341,7 +1393,7 @@ body{
 
 
 /* =========================================================
-   TYPING
+   THINKING — LangGraph-style reasoning animation
 ========================================================= */
 
 .typing-message{
@@ -1357,79 +1409,298 @@ body{
 }
 
 
-.typing-box{
+.avatar.thinking-avatar{
+
+    animation:avatarPulse 1.8s ease-in-out infinite;
+
+}
+
+
+@keyframes avatarPulse{
+
+    0%,100%{
+        box-shadow:0 0 20px rgba(139,92,246,.15);
+    }
+
+    50%{
+        box-shadow:0 0 28px rgba(139,92,246,.45),
+                   0 0 0 4px rgba(139,92,246,.06);
+    }
+
+}
+
+
+.think-card{
+
+    display:flex;
+
+    flex-direction:column;
+
+    gap:12px;
+
+    min-width:260px;
+
+    max-width:420px;
+
+    padding:14px 16px;
+
+    background:rgba(255,255,255,.025);
+
+    border:1px solid var(--border);
+
+    border-radius:12px;
+
+    border-top-left-radius:3px;
+
+}
+
+
+/* NODE GRAPH */
+
+.think-graph{
 
     display:flex;
 
     align-items:center;
 
-    gap:5px;
-
-    padding-top:8px;
-
 }
 
 
-.typing-dot{
+.think-node{
 
-    width:5px;
+    width:9px;
 
-    height:5px;
+    height:9px;
 
     border-radius:50%;
 
-    background:var(--accent);
+    background:var(--faint);
 
-    animation:
-        typing 1.1s infinite;
+    flex-shrink:0;
 
-}
-
-
-.typing-dot:nth-child(2){
-
-    animation-delay:.15s;
+    animation:nodePulse 3.6s ease-in-out infinite;
 
 }
 
 
-.typing-dot:nth-child(3){
-
-    animation-delay:.3s;
-
-}
+.think-graph .think-node:nth-child(3){ animation-delay:.9s; }
+.think-graph .think-node:nth-child(5){ animation-delay:1.8s; }
+.think-graph .think-node:nth-child(7){ animation-delay:2.7s; }
 
 
-@keyframes typing{
+@keyframes nodePulse{
 
-    0%,60%,100%{
-
-        transform:translateY(0);
-
-        opacity:.25;
-
+    0%,86%,100%{
+        background:var(--faint);
+        box-shadow:none;
+        transform:scale(1);
     }
 
-    30%{
+    8%{
+        background:var(--accent);
+        box-shadow:0 0 12px rgba(169,112,255,.75);
+        transform:scale(1.5);
+    }
 
-        transform:translateY(-5px);
+    20%{
+        background:var(--faint);
+        box-shadow:none;
+        transform:scale(1);
+    }
 
+}
+
+
+.think-line{
+
+    width:26px;
+
+    height:2px;
+
+    background:var(--border);
+
+    position:relative;
+
+    overflow:hidden;
+
+    flex-shrink:0;
+
+}
+
+
+.think-line::after{
+
+    content:"";
+
+    position:absolute;
+
+    top:0;
+
+    left:-45%;
+
+    width:45%;
+
+    height:100%;
+
+    background:linear-gradient(90deg, transparent, var(--cyan), transparent);
+
+    animation:lineFlow 3.6s ease-in-out infinite;
+
+}
+
+
+.think-graph .think-line:nth-child(4)::after{ animation-delay:.9s; }
+.think-graph .think-line:nth-child(6)::after{ animation-delay:1.8s; }
+
+
+@keyframes lineFlow{
+
+    0%,8%{
+        left:-45%;
+        opacity:0;
+    }
+
+    11%{
         opacity:1;
+    }
 
+    22%,100%{
+        left:145%;
+        opacity:0;
     }
 
 }
 
 
-.thinking{
+/* SHIMMER STAGE LABEL */
 
-    margin-left:8px;
+.think-label{
 
-    color:var(--faint);
+    position:relative;
 
     font-family:"JetBrains Mono";
 
-    font-size:8px;
+    font-size:11px;
+
+    background:linear-gradient(
+        100deg,
+        var(--muted) 30%,
+        var(--accent) 48%,
+        var(--cyan) 56%,
+        var(--muted) 74%
+    );
+
+    background-size:220% 100%;
+
+    -webkit-background-clip:text;
+
+    background-clip:text;
+
+    color:transparent;
+
+    animation:shimmer 1.8s linear infinite;
+
+}
+
+
+.think-label.pulse{
+
+    animation:shimmer 1.8s linear infinite, stageFade .35s ease;
+
+}
+
+
+@keyframes shimmer{
+
+    0%{ background-position:220% 0; }
+
+    100%{ background-position:-40% 0; }
+
+}
+
+
+@keyframes stageFade{
+
+    from{
+        opacity:0;
+        transform:translateY(3px);
+    }
+
+    to{
+        opacity:1;
+        transform:translateY(0);
+    }
+
+}
+
+
+/* REASONING TRACE LOG */
+
+.think-log{
+
+    display:flex;
+
+    flex-direction:column;
+
+    gap:4px;
+
+}
+
+
+.think-log-line{
+
+    font-family:"JetBrains Mono";
+
+    font-size:10px;
+
+    color:var(--faint);
+
+    opacity:.5;
+
+    white-space:nowrap;
+
+    overflow:hidden;
+
+    text-overflow:ellipsis;
+
+    transition:opacity .3s, color .3s;
+
+}
+
+
+.think-log-line.current{
+
+    color:var(--muted);
+
+    opacity:1;
+
+}
+
+
+.think-log-line .cursor{
+
+    display:inline-block;
+
+    width:5px;
+
+    height:10px;
+
+    margin-left:2px;
+
+    vertical-align:-1px;
+
+    background:var(--cyan);
+
+    animation:cursorBlink 1s step-end infinite;
+
+}
+
+
+@keyframes cursorBlink{
+
+    0%,49%{ opacity:1; }
+
+    50%,100%{ opacity:0; }
 
 }
 
@@ -1636,6 +1907,17 @@ body{
 
     cursor:not-allowed;
 
+    animation:sendPulse 1.4s ease-in-out infinite;
+
+}
+
+
+@keyframes sendPulse{
+
+    0%,100%{ box-shadow:0 5px 20px rgba(130,85,255,.15); }
+
+    50%{ box-shadow:0 5px 26px rgba(130,85,255,.4); }
+
 }
 
 
@@ -1713,6 +1995,18 @@ body{
     .welcome h2{
 
         font-size:23px;
+
+    }
+
+    .think-card{
+
+        max-width:280px;
+
+    }
+
+    .message.user .message-content{
+
+        max-width:85%;
 
     }
 
@@ -2174,6 +2468,17 @@ function escapeHTML(text){
 
 
 /* =========================================================
+   SLEEP
+========================================================= */
+
+function sleep(ms){
+
+    return new Promise(resolve => setTimeout(resolve,ms));
+
+}
+
+
+/* =========================================================
    HIDE WELCOME
 ========================================================= */
 
@@ -2353,8 +2658,35 @@ async function addBotMessage(text){
 
 
 /* =========================================================
-   TYPING INDICATOR
+   THINKING ANIMATION — LangGraph node trace
 ========================================================= */
+
+const thinkStageLabels = [
+    "thinking",
+    "routing",
+    "retrieving",
+    "reasoning",
+    "generating"
+];
+
+const thinkTraceLines = [
+    "parsing user intent",
+    "routing through langgraph nodes",
+    "retrieving relevant context",
+    "reasoning over context",
+    "composing response"
+];
+
+const thinkState = {
+
+    active:false,
+
+    stageTimer:null,
+
+    stageIdx:0
+
+};
+
 
 function showTyping(){
 
@@ -2370,7 +2702,7 @@ function showTyping(){
 
     typing.innerHTML = `
 
-        <div class="avatar">
+        <div class="avatar thinking-avatar">
             AI
         </div>
 
@@ -2382,19 +2714,30 @@ function showTyping(){
                     NeuraDB
                 </span>
 
+                <span class="think-label" id="thinkLabel">
+                    ${thinkStageLabels[0]}
+                </span>
+
             </div>
 
-            <div class="typing-box">
+            <div class="think-card">
 
-                <span class="typing-dot"></span>
+                <div class="think-graph">
 
-                <span class="typing-dot"></span>
+                    <span class="think-node"></span>
+                    <span class="think-line"></span>
+                    <span class="think-node"></span>
+                    <span class="think-line"></span>
+                    <span class="think-node"></span>
+                    <span class="think-line"></span>
+                    <span class="think-node"></span>
 
-                <span class="typing-dot"></span>
+                </div>
 
-                <span class="thinking">
-                    thinking...
-                </span>
+                <div
+                    class="think-log"
+                    id="thinkLog"
+                ></div>
 
             </div>
 
@@ -2407,6 +2750,116 @@ function showTyping(){
 
     scrollBottom();
 
+    startThinkingAnimation();
+
+}
+
+
+function startThinkingAnimation(){
+
+    thinkState.active = true;
+
+    thinkState.stageIdx = 0;
+
+
+    thinkState.stageTimer = setInterval(() => {
+
+        thinkState.stageIdx =
+            (thinkState.stageIdx + 1) % thinkStageLabels.length;
+
+        const el =
+            document.getElementById("thinkLabel");
+
+        if(el){
+
+            el.textContent =
+                thinkStageLabels[thinkState.stageIdx];
+
+            el.classList.remove("pulse");
+
+            void el.offsetWidth;
+
+            el.classList.add("pulse");
+
+        }
+
+    },1300);
+
+
+    runThinkingTrace();
+
+}
+
+
+async function runThinkingTrace(){
+
+    let index = 0;
+
+
+    while(thinkState.active){
+
+        const container =
+            document.getElementById("thinkLog");
+
+        if(!container)
+            return;
+
+
+        const line =
+            document.createElement("div");
+
+        line.className =
+            "think-log-line current";
+
+
+        container.appendChild(line);
+
+
+        Array.from(container.children).forEach(child => {
+
+            if(child !== line)
+                child.classList.remove("current");
+
+        });
+
+
+        while(container.children.length > 3){
+
+            container.removeChild(container.firstChild);
+
+        }
+
+
+        const text =
+            thinkTraceLines[index % thinkTraceLines.length];
+
+
+        for(let c=1; c<=text.length; c++){
+
+            if(!thinkState.active)
+                return;
+
+            line.innerHTML =
+                `${escapeHTML(text.slice(0,c))}<span class="cursor"></span>`;
+
+            scrollBottom();
+
+            await sleep(22);
+
+        }
+
+
+        line.innerHTML =
+            escapeHTML(text);
+
+
+        await sleep(550);
+
+
+        index++;
+
+    }
+
 }
 
 
@@ -2415,6 +2868,17 @@ function showTyping(){
 ========================================================= */
 
 function removeTyping(){
+
+    thinkState.active = false;
+
+    if(thinkState.stageTimer){
+
+        clearInterval(thinkState.stageTimer);
+
+        thinkState.stageTimer = null;
+
+    }
+
 
     const typing =
         document.getElementById("typing");
@@ -3020,4 +3484,3 @@ query.focus();
 </body>
 
 </html>
-````
