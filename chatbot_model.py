@@ -451,12 +451,25 @@ tools = [
     execute_code,
     get_joke
 ]
+llm_with_tools = llm.bind_tools(tools)
 class ChatState(TypedDict):
     messages:Annotated[list[BaseMessage], add_messages]
+    tools:str
 def chat(state: ChatState):
-    result = llm.invoke(state["messages"])
 
-    return {"messages": [result]}
+    result = llm_with_tools.invoke(state["messages"])
+
+    if result.tool_calls:
+        tool_called = result.tool_calls[0]["name"]
+    else:
+        tool_called = ""
+
+    print("TOOL USED:", tool_called)
+
+    return {
+        "messages": [result],
+        "tools": tool_called
+    }
 tool_node = ToolNode(tools)
 graph = StateGraph(ChatState)
 graph.add_node('chat',chat)
