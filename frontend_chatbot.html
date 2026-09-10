@@ -1393,6 +1393,73 @@ body{
 
 
 /* =========================================================
+   TOOL USED TAG — shown on the finished bot message
+========================================================= */
+
+.tool-used-tag{
+
+    display:inline-flex;
+
+    align-items:center;
+
+    gap:6px;
+
+    margin-top:10px;
+
+    padding:5px 10px;
+
+    border:1px solid rgba(169,112,255,.3);
+
+    border-radius:20px;
+
+    background:rgba(169,112,255,.08);
+
+    color:#c9aaff;
+
+    font-family:"JetBrains Mono";
+
+    font-size:9px;
+
+    letter-spacing:.2px;
+
+    width:fit-content;
+
+}
+
+.tool-used-tag.none{
+
+    border-color:var(--border);
+
+    background:rgba(255,255,255,.02);
+
+    color:var(--faint);
+
+}
+
+.tool-used-tag .tool-used-dot{
+
+    width:5px;
+
+    height:5px;
+
+    border-radius:50%;
+
+    background:var(--accent);
+
+    box-shadow:0 0 8px var(--accent);
+
+}
+
+.tool-used-tag.none .tool-used-dot{
+
+    background:var(--faint);
+
+    box-shadow:none;
+
+}
+
+
+/* =========================================================
    THINKING — LangGraph-style reasoning animation
 ========================================================= */
 
@@ -2701,7 +2768,7 @@ function addUserMessage(text){
    ADD BOT MESSAGE
 ========================================================= */
 
-async function addBotMessage(text){
+async function addBotMessage(text, toolsUsed = null){
 
     const message =
         document.createElement("div");
@@ -2752,6 +2819,53 @@ async function addBotMessage(text){
 
 
     chatInner.appendChild(message);
+
+
+    /*
+       TOOL USED TAG
+
+       toolsUsed is the REAL list returned by the FastAPI /chatbot
+       endpoint (state["messages"] tool calls for this turn), not a
+       guess — null means the caller didn't tell us (e.g. an error
+       message), an empty array means the model answered without
+       calling any tool.
+    */
+
+    if(toolsUsed !== null){
+
+        const actionsBar =
+            message.querySelector(".message-actions");
+
+        const tag =
+            document.createElement("div");
+
+        if(toolsUsed.length > 0){
+
+            tag.className =
+                "tool-used-tag";
+
+            tag.innerHTML = `
+                <span class="tool-used-dot"></span>
+                <span>used ${escapeHTML(toolsUsed.join(", "))}</span>
+            `;
+
+        }
+        else{
+
+            tag.className =
+                "tool-used-tag none";
+
+            tag.innerHTML = `
+                <span class="tool-used-dot"></span>
+                <span>no tool used — answered directly</span>
+            `;
+
+        }
+
+        message.querySelector(".message-content")
+            .insertBefore(tag, actionsBar);
+
+    }
 
 
     const textElement =
@@ -2926,29 +3040,46 @@ function startToolSelectionAnimation(){
 }
 
 function showToolSelected(toolName){
-    if(!toolName) return;
-
-    const index = availableTools.findIndex(
-        tool => tool.name === toolName
-    );
-
-    if(index === -1) return;
-
-    toolSelectionState.selected = toolName;
 
     document.querySelectorAll(".tool-chip").forEach(el => {
         el.classList.remove("scanning");
         el.classList.remove("selected");
     });
 
-    const chip = document.getElementById(`tool-chip-${index}`);
-
-    if(chip){
-        chip.classList.add("selected");
-    }
-
     const status = document.getElementById("toolSelectStatus");
     const log = document.getElementById("toolSelectLog");
+
+    if(!toolName){
+
+        toolSelectionState.selected = null;
+
+        if(status){
+            status.textContent = "no tool";
+        }
+
+        if(log){
+            log.innerHTML =
+                `<span class="live">answered directly, no tool needed</span>`;
+        }
+
+        return;
+    }
+
+    const index = availableTools.findIndex(
+        tool => tool.name === toolName
+    );
+
+    toolSelectionState.selected = toolName;
+
+    if(index !== -1){
+
+        const chip = document.getElementById(`tool-chip-${index}`);
+
+        if(chip){
+            chip.classList.add("selected");
+        }
+
+    }
 
     if(status){
         status.textContent = "selected";
@@ -3281,20 +3412,47 @@ async function sendMessage(){
         );
 
 
+        /*
+           REVEAL THE REAL TOOL
+
+           data.tools_used is returned by the FastAPI backend from
+           the actual LangGraph run for this question (not a guess).
+           Lock the tool-router card onto the real answer for a
+           moment before it disappears, so "thinking" ends on truth.
+        */
+
+        const toolsUsed =
+            Array.isArray(data.tools_used)
+                ? data.tools_used
+                : [];
+
+        stopToolSelectionAnimation();
+
+        showToolSelected(
+            toolsUsed.length > 0
+                ? toolsUsed[toolsUsed.length - 1]
+                : null
+        );
+
+        await sleep(650);
+
+
         removeTyping();
 
 
         if(data.AI){
 
             await addBotMessage(
-                String(data.AI)
+                String(data.AI),
+                toolsUsed
             );
 
         }
         else{
 
             await addBotMessage(
-                "The AI returned an empty response."
+                "The AI returned an empty response.",
+                toolsUsed
             );
 
         }
