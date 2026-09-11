@@ -12,9 +12,15 @@ from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph.message import add_messages, BaseMessage
 from langgraph.prebuilt import ToolNode
 from langgraph.prebuilt import tools_condition
+from dotenv import load_dotenv
+from langchain_google_genai import ChatGoogleGenerativeAI
 
+load_dotenv()
+llm = ChatGoogleGenerativeAI(
+    model="gemini-3.6-flash"
+)
 
-llm = ChatOllama(model='qwen2.5:7b')
+# llm = ChatOllama(model='qwen2.5:7b')
 memory = MemorySaver()
 config = {
     "configurable": {
@@ -489,4 +495,4 @@ workflow = graph.compile(checkpointer=memory)
 #     query = input('USER:')
 #     result = workflow.invoke({
 #     "messages": [HumanMessage(content=query)]},config=config)
-#     print('AI',result['messages'][-1].content)
+#     print('AI',result['messages'][-1].content[0]['text'])
