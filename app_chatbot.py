@@ -30,6 +30,7 @@ def chatbot(query:str):
     tools_used.reverse()
 
     return {
+        # 'AI': result['messages'][-1].content,
         'AI': result['messages'][-1].content[0]['text'],
         'tools_used': tools_used
     }

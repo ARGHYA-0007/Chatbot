@@ -495,4 +495,5 @@ workflow = graph.compile(checkpointer=memory)
 #     query = input('USER:')
 #     result = workflow.invoke({
 #     "messages": [HumanMessage(content=query)]},config=config)
+#     # print('AI',result['messages'][-1].content)
 #     print('AI',result['messages'][-1].content[0]['text'])
