@@ -495,6 +495,11 @@ connection_kwargs = {
     "autocommit": True,
     "prepare_threshold": 0,
 }
+
+
+# No with, so nothing closes the connection when this code finishes running.
+#  The pool just sits there ready, and workflow keeps a live connection available 
+#  for the whole lifetime of the server — which is why chat now works past the first request.
 from psycopg_pool import ConnectionPool
 pool = ConnectionPool(
     conninfo=DB_URI,
