@@ -14,19 +14,20 @@ from langgraph.prebuilt import ToolNode
 from langgraph.prebuilt import tools_condition
 from dotenv import load_dotenv
 from langchain_google_genai import ChatGoogleGenerativeAI
+from langgraph.checkpoint.postgres import PostgresSaver
 
 load_dotenv()
-llm = ChatGoogleGenerativeAI(
-    model="gemini-3.6-flash"
-)
-
-# llm = ChatOllama(model='qwen2.5:7b')
+# llm = ChatGoogleGenerativeAI(
+#     model="gemini-3.6-flash"
+# )
+DB_URI = "postgresql://postgres:1234@localhost:5432/chatbot"
+llm = ChatOllama(model='qwen2.5:7b')
 memory = MemorySaver()
-config = {
-    "configurable": {
-        "thread_id": "user1"
-    }
-}
+# config = {
+#     "configurable": {
+#         "thread_id": "user1"
+#     }
+# }
 import requests
 from langchain_core.tools import tool
 
@@ -490,10 +491,24 @@ graph.add_edge(
     "chat"
 )
 
-workflow = graph.compile(checkpointer=memory)
-# while True:
-#     query = input('USER:')
-#     result = workflow.invoke({
-#     "messages": [HumanMessage(content=query)]},config=config)
-#     # print('AI',result['messages'][-1].content)
-#     print('AI',result['messages'][-1].content[0]['text'])
+connection_kwargs = {
+    "autocommit": True,
+    "prepare_threshold": 0,
+}
+from psycopg_pool import ConnectionPool
+pool = ConnectionPool(
+    conninfo=DB_URI,
+    max_size=20,
+    kwargs=connection_kwargs,
+)
+
+checkpointer = PostgresSaver(pool)
+checkpointer.setup()
+
+workflow = graph.compile(checkpointer=checkpointer)
+    # while True:
+    #     query = input('USER:')
+    #     result = workflow.invoke({
+    #     "messages": [HumanMessage(content=query)]},config=config)
+    #     # print('AI',result['messages'][-1].content)
+    #     print('AI',result['messages'][-1].content[0]['text'])
