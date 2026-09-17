@@ -1,7 +1,7 @@
 import csv
 import os
 from typing import Literal, Optional, TypedDict,Annotated
-from langchain_core.messages import SystemMessage,HumanMessage
+from langchain_core.messages import SystemMessage,HumanMessage,RemoveMessage
 from pydantic import BaseModel, Field
 from langgraph.graph import StateGraph, END,START
 from langgraph.types import interrupt, Command
@@ -30,14 +30,6 @@ memory = MemorySaver()
 # }
 import requests
 from langchain_core.tools import tool
-
-
-
-import requests
-
-from langchain_core.tools import tool
-
-
 # ============================================================
 # 1. WEATHER
 # ============================================================
@@ -462,6 +454,7 @@ llm_with_tools = llm.bind_tools(tools)
 class ChatState(TypedDict):
     messages:Annotated[list[BaseMessage], add_messages]
     tools:str
+    summary:str
 def chat(state: ChatState):
 
     result = llm_with_tools.invoke(state["messages"])
@@ -477,11 +470,32 @@ def chat(state: ChatState):
         "messages": [result],
         "tools": tool_called
     }
+def summurize(state:ChatState):
+    existing_summary = state.get("summary", "")
+    if existing_summary:
+        prompt = (
+            f"Existing summary:\n{existing_summary}\n\n"
+            "Extend the summary using the new conversation above."
+        )
+    else:
+        prompt = "Summarize the conversation above."
+    message_for_summary = state["messages"] + [
+        HumanMessage(content=prompt)
+    ]
+    result = llm.invoke(message_for_summary)
+    messages_to_delete = state["messages"][:-2]
+    return {
+        'summary':result.content,
+        'messages':[RemoveMessage(id=m.id) for m in messages_to_delete]
+    }
+def should_summarize(state:ChatState):
+    return len(state['messages'])>6
 tool_node = ToolNode(tools)
 graph = StateGraph(ChatState)
+graph.add_node('summarize',summurize)
 graph.add_node('chat',chat)
 graph.add_node("tools", tool_node)
-graph.add_edge(START,'chat')
+graph.add_conditional_edges(START,should_summarize,{True:'summarize',False:'chat'})
 graph.add_conditional_edges(
     "chat",
     tools_condition
@@ -511,9 +525,10 @@ checkpointer = PostgresSaver(pool)
 checkpointer.setup()
 
 workflow = graph.compile(checkpointer=checkpointer)
-    # while True:
-    #     query = input('USER:')
-    #     result = workflow.invoke({
-    #     "messages": [HumanMessage(content=query)]},config=config)
-    #     # print('AI',result['messages'][-1].content)
-    #     print('AI',result['messages'][-1].content[0]['text'])
+# config = {"configurable": {"thread_id": '1'}}
+# while True:
+#     query = input('USER:')
+#     result = workflow.invoke({
+#     "messages": [HumanMessage(content=query)]},config=config)
+#     # print('AI',result['messages'][-1].content)
+#     print('AI:',result['messages'][-1].content)
