@@ -48,6 +48,10 @@ def get_conversations():
     """List every conversation so the frontend can render the sidebar."""
     return database.list_conversations()
 
+@app.delete("/conversations/{thread_id}")
+def delete_conversation_route(thread_id: str):
+    database.delete_conversation(thread_id)
+    return {"status": "deleted", "thread_id": thread_id}
 
 @app.get('/chatbot/{thread_id}/history')
 def get_history(thread_id: str):

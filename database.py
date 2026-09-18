@@ -39,7 +39,14 @@ def list_conversations():
             "FROM chat_conversations ORDER BY created_at DESC"
         ).fetchall()
     return rows
-
+def delete_conversation(thread_id: str):
+    """Deletes the conversation's metadata row plus its LangGraph
+    checkpoint data (checkpoints, blobs, and pending writes)."""
+    with get_conn() as conn:
+        conn.execute("DELETE FROM checkpoint_writes WHERE thread_id = %s", (thread_id,))
+        conn.execute("DELETE FROM checkpoint_blobs WHERE thread_id = %s", (thread_id,))
+        conn.execute("DELETE FROM checkpoints WHERE thread_id = %s", (thread_id,))
+        conn.execute("DELETE FROM chat_conversations WHERE thread_id = %s", (thread_id,))
 
 def maybe_set_title(thread_id: str, first_message: str):
     """Give the conversation a real title the first time it's used,
