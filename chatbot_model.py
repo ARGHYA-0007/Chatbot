@@ -496,6 +496,7 @@ graph.add_node('summarize',summurize)
 graph.add_node('chat',chat)
 graph.add_node("tools", tool_node)
 graph.add_conditional_edges(START,should_summarize,{True:'summarize',False:'chat'})
+graph.add_edge('summarize','chat')
 graph.add_conditional_edges(
     "chat",
     tools_condition

@@ -1,8 +1,10 @@
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
 <title>LangGraph Chatbot</title>
+
 <style>
   :root {
     --bg: #0f1115;
@@ -16,7 +18,11 @@
     --ai-bubble: #1f2333;
     --danger: #ff6b6b;
   }
-  * { box-sizing: border-box; }
+
+  * {
+    box-sizing: border-box;
+  }
+
   body {
     margin: 0;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -35,6 +41,7 @@
     flex-direction: column;
     flex-shrink: 0;
   }
+
   #new-chat-btn {
     margin: 12px;
     padding: 10px;
@@ -45,12 +52,17 @@
     font-size: 14px;
     cursor: pointer;
   }
-  #new-chat-btn:hover { opacity: 0.9; }
+
+  #new-chat-btn:hover {
+    opacity: 0.9;
+  }
+
   #conversations {
     overflow-y: auto;
     flex: 1;
     padding: 0 8px;
   }
+
   .conv-item {
     display: flex;
     align-items: center;
@@ -63,8 +75,16 @@
     color: var(--muted);
     margin-bottom: 2px;
   }
-  .conv-item:hover { background: var(--panel-2); }
-  .conv-item.active { background: var(--panel-2); color: var(--text); }
+
+  .conv-item:hover {
+    background: var(--panel-2);
+  }
+
+  .conv-item.active {
+    background: var(--panel-2);
+    color: var(--text);
+  }
+
   .conv-title {
     white-space: nowrap;
     overflow: hidden;
@@ -72,6 +92,7 @@
     flex: 1;
     min-width: 0;
   }
+
   .conv-delete-btn {
     flex-shrink: 0;
     background: none;
@@ -85,11 +106,24 @@
     opacity: 0;
     transition: opacity 0.1s ease;
   }
-  .conv-item:hover .conv-delete-btn { opacity: 1; }
-  .conv-delete-btn:hover { background: rgba(255, 107, 107, 0.15); color: var(--danger); }
+
+  .conv-item:hover .conv-delete-btn {
+    opacity: 1;
+  }
+
+  .conv-delete-btn:hover {
+    background: rgba(255, 107, 107, 0.15);
+    color: var(--danger);
+  }
 
   /* Main chat area */
-  #main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+  #main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
   #messages {
     flex: 1;
     overflow-y: auto;
@@ -98,6 +132,7 @@
     flex-direction: column;
     gap: 14px;
   }
+
   .msg {
     max-width: 65%;
     padding: 10px 14px;
@@ -106,30 +141,47 @@
     font-size: 14.5px;
     white-space: pre-wrap;
   }
+
   .msg.user {
     align-self: flex-end;
     background: var(--user-bubble);
   }
+
   .msg.ai {
     align-self: flex-start;
     background: var(--ai-bubble);
   }
+
+  .ai-link {
+    color: #8ea7ff;
+    text-decoration: underline;
+    cursor: pointer;
+    word-break: break-all;
+  }
+
+  .ai-link:hover {
+    opacity: 0.8;
+  }
+
   .tools-used {
     font-size: 13px;
     font-weight: 700;
     color: #b7bcd4;
     margin-top: 6px;
   }
+
   .msg-meta {
     display: flex;
     align-items: center;
     gap: 10px;
     margin-top: 8px;
   }
+
   .elapsed-time {
     font-size: 11px;
     color: var(--muted);
   }
+
   .copy-btn {
     background: none;
     border: 1px solid var(--border);
@@ -139,12 +191,18 @@
     border-radius: 6px;
     cursor: pointer;
   }
-  .copy-btn:hover { background: var(--panel-2); color: var(--text); }
+
+  .copy-btn:hover {
+    background: var(--panel-2);
+    color: var(--text);
+  }
+
   #empty-state {
     margin: auto;
     color: var(--muted);
     text-align: center;
   }
+
   #input-bar {
     display: flex;
     gap: 8px;
@@ -152,6 +210,7 @@
     border-top: 1px solid var(--border);
     background: var(--panel);
   }
+
   #input-bar input {
     flex: 1;
     padding: 12px 14px;
@@ -162,6 +221,12 @@
     font-size: 14px;
     outline: none;
   }
+
+  #input-bar input:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
   #input-bar button {
     padding: 0 20px;
     border-radius: 10px;
@@ -171,9 +236,14 @@
     font-size: 14px;
     cursor: pointer;
   }
-  #input-bar button:disabled { opacity: 0.5; cursor: default; }
+
+  #input-bar button:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
 </style>
 </head>
+
 <body>
 
 <div id="sidebar">
@@ -182,20 +252,34 @@
 </div>
 
 <div id="main">
+
   <div id="messages">
-    <div id="empty-state">Start a new chat, or pick one from the left.</div>
+    <div id="empty-state">
+      Start a new chat, or pick one from the left.
+    </div>
   </div>
+
   <div id="input-bar">
-    <input id="chat-input" type="text" placeholder="Message the bot..." />
+    <input
+      id="chat-input"
+      type="text"
+      placeholder="Message the bot..."
+    />
     <button id="send-btn">Send</button>
   </div>
+
 </div>
 
 <script>
+
   // Point this at wherever your FastAPI server is running.
   const API_BASE = "http://localhost:8000";
 
   let activeThreadId = null;
+
+  // IMPORTANT:
+  // Prevent multiple requests from being sent at the same time.
+  let isSending = false;
 
   const conversationsEl = document.getElementById("conversations");
   const messagesEl = document.getElementById("messages");
@@ -203,176 +287,551 @@
   const sendBtn = document.getElementById("send-btn");
   const newChatBtn = document.getElementById("new-chat-btn");
 
+
   async function loadConversations() {
     const res = await fetch(`${API_BASE}/conversations`);
     const data = await res.json();
+
     conversationsEl.innerHTML = "";
+
     data.forEach(conv => {
+
       const item = document.createElement("div");
-      item.className = "conv-item" + (conv.thread_id === activeThreadId ? " active" : "");
+
+      item.className =
+        "conv-item" +
+        (conv.thread_id === activeThreadId ? " active" : "");
+
       item.title = conv.thread_id;
 
+
       const titleSpan = document.createElement("span");
+
       titleSpan.className = "conv-title";
-      titleSpan.textContent = conv.title || "New Chat";
+
+      titleSpan.textContent =
+        conv.title || "New Chat";
+
       item.appendChild(titleSpan);
 
+
       const delBtn = document.createElement("button");
+
       delBtn.className = "conv-delete-btn";
+
       delBtn.textContent = "✕";
+
       delBtn.title = "Delete conversation";
+
+
       delBtn.addEventListener("click", (e) => {
+
         e.stopPropagation();
+
         deleteConversation(conv.thread_id);
+
       });
+
+
       item.appendChild(delBtn);
 
-      item.addEventListener("click", () => openConversation(conv.thread_id));
+
+      item.addEventListener(
+        "click",
+        () => openConversation(conv.thread_id)
+      );
+
       conversationsEl.appendChild(item);
+
     });
   }
 
+
   async function deleteConversation(threadId) {
-    if (!confirm("Delete this conversation? This can't be undone.")) return;
+
+    if (!confirm(
+      "Delete this conversation? This can't be undone."
+    )) {
+      return;
+    }
+
     try {
-      const res = await fetch(`${API_BASE}/conversations/${threadId}`, { method: "DELETE" });
+
+      const res = await fetch(
+        `${API_BASE}/conversations/${threadId}`,
+        {
+          method: "DELETE"
+        }
+      );
+
+
       if (!res.ok) {
-        console.error("Delete failed", res.status, await res.text());
-        alert("Couldn't delete that conversation — check the server logs.");
+
+        console.error(
+          "Delete failed",
+          res.status,
+          await res.text()
+        );
+
+        alert(
+          "Couldn't delete that conversation — check the server logs."
+        );
+
         return;
       }
+
+
       if (threadId === activeThreadId) {
+
         activeThreadId = null;
-        messagesEl.innerHTML = '<div id="empty-state">Start a new chat, or pick one from the left.</div>';
+
+        messagesEl.innerHTML =
+          '<div id="empty-state">' +
+          'Start a new chat, or pick one from the left.' +
+          '</div>';
       }
+
+
       await loadConversations();
+
     } catch (err) {
+
       console.error(err);
-      alert("Couldn't reach the server to delete that conversation.");
+
+      alert(
+        "Couldn't reach the server to delete that conversation."
+      );
+
     }
   }
 
-  function renderMessage(role, content, toolsUsed, elapsedSeconds) {
-    document.getElementById("empty-state")?.remove();
+
+  function renderMessage(
+    role,
+    content,
+    toolsUsed,
+    elapsedSeconds
+  ) {
+
+    document
+      .getElementById("empty-state")
+      ?.remove();
+
+
     const bubble = document.createElement("div");
-    bubble.className = "msg " + (role === "user" ? "user" : "ai");
+
+    bubble.className =
+      "msg " +
+      (role === "user" ? "user" : "ai");
+
 
     const textSpan = document.createElement("span");
-    textSpan.textContent = content;
+
+    // Make URLs in AI responses clickable.
+    if (role === "ai") {
+      const urlRegex = /(https?:\/\/[^\s<]+)/g;
+      let lastIndex = 0;
+      let match;
+
+      while ((match = urlRegex.exec(content)) !== null) {
+        textSpan.appendChild(
+          document.createTextNode(content.slice(lastIndex, match.index))
+        );
+
+        let url = match[0];
+        let trailing = "";
+
+        // Keep punctuation outside the clickable link.
+        while (/[.,!?;:)]$/.test(url)) {
+          trailing = url.slice(-1) + trailing;
+          url = url.slice(0, -1);
+        }
+
+        const link = document.createElement("a");
+        link.href = url;
+        link.textContent = url;
+        link.target = "_blank";
+        link.rel = "noopener noreferrer";
+        link.className = "ai-link";
+
+        textSpan.appendChild(link);
+
+        if (trailing) {
+          textSpan.appendChild(document.createTextNode(trailing));
+        }
+
+        lastIndex = match.index + match[0].length;
+      }
+
+      textSpan.appendChild(
+        document.createTextNode(content.slice(lastIndex))
+      );
+    } else {
+      textSpan.textContent = content;
+    }
+
     bubble.appendChild(textSpan);
 
+
     if (toolsUsed && toolsUsed.length) {
-      const t = document.createElement("div");
+
+      const t =
+        document.createElement("div");
+
       t.className = "tools-used";
-      t.textContent = "Tools used: " + toolsUsed.join(", ");
+
+      t.textContent =
+        "Tools used: " +
+        toolsUsed.join(", ");
+
       bubble.appendChild(t);
     }
 
+
     if (role === "ai") {
-      const meta = document.createElement("div");
+
+      const meta =
+        document.createElement("div");
+
       meta.className = "msg-meta";
 
+
       if (typeof elapsedSeconds === "number") {
-        const timeSpan = document.createElement("span");
-        timeSpan.className = "elapsed-time";
-        timeSpan.textContent = `${elapsedSeconds.toFixed(1)}s`;
+
+        const timeSpan =
+          document.createElement("span");
+
+        timeSpan.className =
+          "elapsed-time";
+
+        timeSpan.textContent =
+          `${elapsedSeconds.toFixed(1)}s`;
+
         meta.appendChild(timeSpan);
       }
 
-      const copyBtn = document.createElement("button");
+
+      const copyBtn =
+        document.createElement("button");
+
       copyBtn.className = "copy-btn";
+
       copyBtn.textContent = "Copy";
-      copyBtn.addEventListener("click", async () => {
-        try {
-          await navigator.clipboard.writeText(content);
-          copyBtn.textContent = "Copied!";
-          setTimeout(() => (copyBtn.textContent = "Copy"), 1500);
-        } catch (err) {
-          console.error("Copy failed", err);
-          copyBtn.textContent = "Failed";
-          setTimeout(() => (copyBtn.textContent = "Copy"), 1500);
+
+
+      copyBtn.addEventListener(
+        "click",
+        async () => {
+
+          try {
+
+            await navigator.clipboard.writeText(
+              content
+            );
+
+            copyBtn.textContent = "Copied!";
+
+            setTimeout(
+              () => (copyBtn.textContent = "Copy"),
+              1500
+            );
+
+          } catch (err) {
+
+            console.error(
+              "Copy failed",
+              err
+            );
+
+            copyBtn.textContent = "Failed";
+
+            setTimeout(
+              () => (copyBtn.textContent = "Copy"),
+              1500
+            );
+          }
+
         }
-      });
+      );
+
+
       meta.appendChild(copyBtn);
 
       bubble.appendChild(meta);
     }
 
+
     messagesEl.appendChild(bubble);
-    messagesEl.scrollTop = messagesEl.scrollHeight;
+
+    messagesEl.scrollTop =
+      messagesEl.scrollHeight;
   }
+
 
   async function openConversation(threadId) {
-    activeThreadId = threadId;
-    messagesEl.innerHTML = "";
-    await loadConversations(); // refresh highlight
 
-    const res = await fetch(`${API_BASE}/chatbot/${threadId}/history`);
-    const data = await res.json();
-
-    if (!data.messages.length) {
-      messagesEl.innerHTML = '<div id="empty-state">No messages yet — say hi!</div>';
+    // Don't switch conversations while a request
+    // is currently running.
+    if (isSending) {
       return;
     }
-    data.messages.forEach(m => renderMessage(m.role, m.content));
+
+    activeThreadId = threadId;
+
+    messagesEl.innerHTML = "";
+
+    await loadConversations();
+
+
+    const res =
+      await fetch(
+        `${API_BASE}/chatbot/${threadId}/history`
+      );
+
+    const data =
+      await res.json();
+
+
+    if (!data.messages.length) {
+
+      messagesEl.innerHTML =
+        '<div id="empty-state">' +
+        'No messages yet — say hi!' +
+        '</div>';
+
+      return;
+    }
+
+
+    data.messages.forEach(
+      m => renderMessage(
+        m.role,
+        m.content
+      )
+    );
   }
 
+
   async function startNewChat() {
-    const res = await fetch(`${API_BASE}/new-chat`, { method: "POST" });
-    const data = await res.json();
-    activeThreadId = data.thread_id;
-    messagesEl.innerHTML = '<div id="empty-state">Say hi to start the conversation.</div>';
+
+    // Don't create/switch chats while a message
+    // is being processed.
+    if (isSending) {
+      return;
+    }
+
+    const res =
+      await fetch(
+        `${API_BASE}/new-chat`,
+        {
+          method: "POST"
+        }
+      );
+
+
+    const data =
+      await res.json();
+
+
+    activeThreadId =
+      data.thread_id;
+
+
+    messagesEl.innerHTML =
+      '<div id="empty-state">' +
+      'Say hi to start the conversation.' +
+      '</div>';
+
+
     await loadConversations();
   }
 
-  async function sendMessage() {
-    const text = inputEl.value.trim();
-    if (!text) return;
 
-    if (!activeThreadId) {
-      renderMessage("ai", "No conversation selected — click '+ New chat' first.");
+  async function sendMessage() {
+
+    // IMPORTANT:
+    // This is the main protection.
+    //
+    // If the first request is still running,
+    // simply ignore another Send/Enter action.
+    if (isSending) {
       return;
     }
 
-    inputEl.value = "";
-    sendBtn.disabled = true;
-    renderMessage("user", text);
 
-    const startTime = performance.now();
+    const text =
+      inputEl.value.trim();
+
+
+    if (!text) {
+      return;
+    }
+
+
+    if (!activeThreadId) {
+
+      renderMessage(
+        "ai",
+        "No conversation selected — click '+ New chat' first."
+      );
+
+      return;
+    }
+
+
+    // Lock sending BEFORE starting the request.
+    isSending = true;
+
+    // Disable both button AND input.
+    sendBtn.disabled = true;
+    inputEl.disabled = true;
+
+    // Optional visual feedback.
+    sendBtn.textContent = "Sending...";
+
+
+    inputEl.value = "";
+
+    renderMessage(
+      "user",
+      text
+    );
+
+
+    const startTime =
+      performance.now();
+
 
     try {
-      const url = `${API_BASE}/chatbot?query=${encodeURIComponent(text)}&thread_id=${encodeURIComponent(activeThreadId)}`;
-      const res = await fetch(url, { method: "POST" });
 
-      const elapsedSeconds = (performance.now() - startTime) / 1000;
+      const url =
+        `${API_BASE}/chatbot` +
+        `?query=${encodeURIComponent(text)}` +
+        `&thread_id=${encodeURIComponent(activeThreadId)}`;
+
+
+      const res =
+        await fetch(
+          url,
+          {
+            method: "POST"
+          }
+        );
+
+
+      const elapsedSeconds =
+        (performance.now() - startTime) / 1000;
+
 
       if (!res.ok) {
-        const errText = await res.text();
-        console.error("Backend error", res.status, errText);
-        renderMessage("ai", `Server returned ${res.status}. Check the browser console and the uvicorn logs.`, null, elapsedSeconds);
+
+        const errText =
+          await res.text();
+
+        console.error(
+          "Backend error",
+          res.status,
+          errText
+        );
+
+
+        renderMessage(
+          "ai",
+          `Server returned ${res.status}. Check the browser console and the uvicorn logs.`,
+          null,
+          elapsedSeconds
+        );
+
         return;
       }
 
-      const data = await res.json();
-      renderMessage("ai", data.AI, data.tools_used, elapsedSeconds);
-      await loadConversations(); // title may have just been set
+
+      const data =
+        await res.json();
+
+
+      renderMessage(
+        "ai",
+        data.AI,
+        data.tools_used,
+        elapsedSeconds
+      );
+
+
+      await loadConversations();
+
+
     } catch (err) {
-      const elapsedSeconds = (performance.now() - startTime) / 1000;
+
+      const elapsedSeconds =
+        (performance.now() - startTime) / 1000;
+
+
       console.error(err);
-      renderMessage("ai", "Couldn't reach the server: " + err.message + ". Is uvicorn running on " + API_BASE + "?", null, elapsedSeconds);
+
+
+      renderMessage(
+        "ai",
+        "Couldn't reach the server: " +
+        err.message +
+        ". Is uvicorn running on " +
+        API_BASE +
+        "?",
+        null,
+        elapsedSeconds
+      );
+
+
     } finally {
+
+      // IMPORTANT:
+      // Always unlock the UI when the request
+      // finishes, whether it succeeded or failed.
+
+      isSending = false;
+
       sendBtn.disabled = false;
+      inputEl.disabled = false;
+
+      sendBtn.textContent = "Send";
+
+      inputEl.focus();
     }
   }
 
-  newChatBtn.addEventListener("click", startNewChat);
-  sendBtn.addEventListener("click", sendMessage);
-  inputEl.addEventListener("keydown", e => {
-    if (e.key === "Enter") sendMessage();
-  });
+
+  newChatBtn.addEventListener(
+    "click",
+    startNewChat
+  );
+
+
+  sendBtn.addEventListener(
+    "click",
+    sendMessage
+  );
+
+
+  inputEl.addEventListener(
+    "keydown",
+    e => {
+
+      if (e.key === "Enter") {
+
+        // Prevent any default Enter behavior.
+        e.preventDefault();
+
+        // sendMessage() itself also checks isSending.
+        sendMessage();
+      }
+
+    }
+  );
+
 
   // Initial load
   loadConversations();
+
 </script>
 
 </body>
